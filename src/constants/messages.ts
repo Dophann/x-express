@@ -24,7 +24,9 @@ export const USER_MESSAGES = {
   ACCESS_TOKEN_IS_REQUIRED: 'Access token is required',
   REFRESH_TOKEN_IS_REQUIRED: 'Refresh token is required',
   REFRESH_TOKEN_NOT_EXIST_OR_NOT_VALID: 'Refresh token not exist or not valid',
-  LOGOUT_SUCCESS: 'Logout successfully'
+  LOGOUT_SUCCESS: 'Logout successfully',
+  USER_NOT_FOUND_OR_VERIFIED: 'User not found or verified',
+  VERIFY_EMAIL_SUCCESS: 'Verify email successfully'
 } as const
 
 export default MESSAGES

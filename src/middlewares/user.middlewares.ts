@@ -2,10 +2,13 @@ import { checkSchema } from 'express-validator'
 import { JsonWebTokenError } from 'jsonwebtoken'
 import { capitalize } from 'lodash'
 import { ObjectId } from 'mongodb'
+import { UserVerifyStatus } from '~/constants/enums'
+import envConfig from '~/constants/env'
 import HTTP_STATUS from '~/constants/httpStatus'
 import MESSAGES, { USER_MESSAGES } from '~/constants/messages'
 import databaseService from '~/services/database.services'
 import userServices from '~/services/user.services'
+import { TokenPayload } from '~/types/user.type'
 import { hashPassword } from '~/utils/crypto'
 import { ErrorWithStatus } from '~/utils/error'
 import { verifyToken } from '~/utils/jwt'
@@ -230,6 +233,107 @@ export const refreshTokenValidator = validate(
               }
               throw error
             }
+          }
+        }
+      }
+    },
+    ['body']
+  )
+)
+
+export const emailVerifyTokenValidator = validate(
+  checkSchema(
+    {
+      email_verify_token: {
+        trim: true,
+        custom: {
+          options: async (token: string, { req }) => {
+            try {
+              const email_verify_token_decoded = await verifyToken({
+                token,
+                secretOrPublicKey: envConfig.EMAIL_VERIFY_TOKEN
+              })
+
+              const { user_id, verify } = email_verify_token_decoded
+
+              const user = await databaseService.users.findOne({ _id: new ObjectId(user_id), verify })
+
+              if (!user) {
+                throw new ErrorWithStatus({
+                  message: USER_MESSAGES.USER_NOT_FOUND_OR_VERIFIED,
+                  status: HTTP_STATUS.UNAUTHORIZED
+                })
+              }
+
+              req.email_verify_token_decoded = email_verify_token_decoded
+              return true
+            } catch (error) {
+              if (error instanceof JsonWebTokenError) {
+                throw new ErrorWithStatus({
+                  message: capitalize(error.message),
+                  status: HTTP_STATUS.UNAUTHORIZED
+                })
+              }
+              throw error
+            }
+          }
+        }
+      }
+    },
+    ['query']
+  )
+)
+
+export const resendVerifyEmailTokenValidator = validate(
+  checkSchema(
+    {
+      Authorization: {
+        trim: true,
+        custom: {
+          options: async (value: string, { req }) => {
+            const { user_id } = req?.decoded_authorization as TokenPayload
+            const user = await databaseService.users.findOne({
+              _id: new ObjectId(user_id),
+              verify: UserVerifyStatus.Unverified
+            })
+
+            if (!user) {
+              throw new ErrorWithStatus({
+                message: USER_MESSAGES.USER_NOT_FOUND_OR_VERIFIED,
+                status: HTTP_STATUS.UNAUTHORIZED
+              })
+            }
+
+            return true
+          }
+        }
+      }
+    },
+    ['headers']
+  )
+)
+
+export const forgotPasswordValidator = validate(
+  checkSchema(
+    {
+      email: {
+        trim: true,
+        isEmail: true,
+        custom: {
+          options: async (email: string, { req }) => {
+            const user = await databaseService.users.findOne({
+              email
+            })
+
+            if (!user) {
+              throw new ErrorWithStatus({
+                status: HTTP_STATUS.BAD_REQUEST,
+                message: 'If the email exists, a reset link has been sent.'
+              })
+            }
+            req.user = user
+
+            return true
           }
         }
       }
