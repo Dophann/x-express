@@ -1,5 +1,5 @@
 import { Collection, Db, MongoClient, MongoServerError } from 'mongodb'
-import envConfig from '~/constants/env-config'
+import envConfig from '~/constants/env'
 import RefreshToken from '~/models/refresh_tokens.model'
 import User from '~/models/users.model'
 
