@@ -6,7 +6,13 @@ import type { StringValue } from 'ms'
 import { hashPassword } from '~/utils/crypto'
 import { ObjectId } from 'mongodb'
 import RefreshToken from '~/models/refresh_tokens.model'
-import { LoginReqBody, RegisterReqBody, VerifyEmailBody } from '~/types/user.type'
+import {
+  LoginReqBody,
+  RegisterReqBody,
+  ResetPasswordReqBody,
+  UpdateMeReqBody,
+  VerifyEmailBody
+} from '~/types/user.type'
 import envConfig from '~/constants/env'
 
 class UserServices {
@@ -184,6 +190,69 @@ class UserServices {
     return {
       forgot_password_token
     }
+  }
+
+  async resetPassword(payload: ResetPasswordReqBody) {
+    const { password, user_id } = payload
+    return databaseService.users.updateOne(
+      {
+        _id: new ObjectId(user_id)
+      },
+      {
+        $set: {
+          password: hashPassword(password),
+          forgot_password_token: ''
+        },
+        $currentDate: {
+          updated_at: true
+        }
+      }
+    )
+  }
+
+  async getMe(user_id: string) {
+    return databaseService.users.findOne(
+      {
+        _id: new ObjectId(user_id)
+      },
+      {
+        projection: {
+          password: 0,
+          forgot_password_token: 0,
+          email_verify_token: 0,
+          verify: 0,
+          created_at: 0,
+          updated_at: 0
+        }
+      }
+    )
+  }
+
+  async updateMe(user_id: string, payload: UpdateMeReqBody) {
+    return databaseService.users.findOneAndUpdate(
+      {
+        _id: new ObjectId(user_id)
+      },
+      {
+        $set: {
+          ...payload
+        },
+        $currentDate: {
+          updated_at: true
+        }
+      },
+      {
+        returnDocument: 'after',
+        projection: {
+          password: 0,
+          forgot_password_token: 0,
+          email_verify_token: 0,
+          verify: 0,
+          created_at: 0,
+          updated_at: 0
+        }
+      }
+    )
   }
 }
 
