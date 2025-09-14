@@ -450,18 +450,6 @@ export const userVerifiedValidator = (req: Request, res: Response, next: NextFun
   next()
 }
 
-// type UpdateMeReqBody = {
-//     _id?: ObjectId | undefined;
-//     name?: string | undefined;
-//     date_of_birth?: Date | undefined;
-//     bio?: string | undefined;
-//     location?: string | undefined;
-//     website?: string | undefined;
-//     username?: string | undefined;
-//     avatar?: string | undefined;
-//     cover_photo?: string | undefined;
-// }
-
 export const UpdateMeValidator = validate(
   checkSchema(
     {
@@ -558,5 +546,113 @@ export const UpdateMeValidator = validate(
       }
     },
     ['body']
+  )
+)
+
+export const followValidator = validate(
+  checkSchema(
+    {
+      followed_user_id: {
+        notEmpty: {
+          errorMessage: USER_MESSAGES.FOLLOWED_USER_ID_IS_REQUIRED
+        },
+        isString: {
+          errorMessage: USER_MESSAGES.FOLLOWED_USER_ID_MUST_BE_A_STRING
+        },
+        trim: true,
+        custom: {
+          options: async (id: string, { req }) => {
+            const { user_id } = req.decoded_authorization as TokenPayload
+
+            if (!ObjectId.isValid(id)) {
+              throw new ErrorWithStatus({
+                message: USER_MESSAGES.FOLLOWED_USER_ID_INVALID,
+                status: HTTP_STATUS.BAD_REQUEST
+              })
+            }
+
+            if (user_id === id) {
+              throw new ErrorWithStatus({
+                message: USER_MESSAGES.ACTION_INVALID,
+                status: HTTP_STATUS.BAD_REQUEST
+              })
+            }
+
+            const user = await databaseService.users.findOne({ _id: new ObjectId(id) })
+
+            if (!user) {
+              throw new ErrorWithStatus({
+                status: HTTP_STATUS.BAD_REQUEST,
+                message: USER_MESSAGES.USER_NOT_FOUND
+              })
+            }
+
+            if (user.verify === UserVerifyStatus.Unverified) {
+              throw new ErrorWithStatus({
+                status: HTTP_STATUS.BAD_REQUEST,
+                message: USER_MESSAGES.USER_NOT_FOUND
+              })
+            }
+
+            return true
+          }
+        }
+      }
+    },
+    ['body']
+  )
+)
+
+export const unFollowValidator = validate(
+  checkSchema(
+    {
+      followed_user_id: {
+        notEmpty: {
+          errorMessage: USER_MESSAGES.FOLLOWED_USER_ID_IS_REQUIRED
+        },
+        isString: {
+          errorMessage: USER_MESSAGES.FOLLOWED_USER_ID_MUST_BE_A_STRING
+        },
+        trim: true,
+        custom: {
+          options: async (id: string, { req }) => {
+            const { user_id } = req.decoded_authorization as TokenPayload
+
+            if (!ObjectId.isValid(id)) {
+              throw new ErrorWithStatus({
+                message: USER_MESSAGES.FOLLOWED_USER_ID_INVALID,
+                status: HTTP_STATUS.BAD_REQUEST
+              })
+            }
+
+            if (user_id === id) {
+              throw new ErrorWithStatus({
+                message: USER_MESSAGES.ACTION_INVALID,
+                status: HTTP_STATUS.BAD_REQUEST
+              })
+            }
+
+            const user = await databaseService.users.findOne({ _id: new ObjectId(id) })
+
+            if (!user) {
+              throw new ErrorWithStatus({
+                status: HTTP_STATUS.BAD_REQUEST,
+                message: USER_MESSAGES.USER_NOT_FOUND
+              })
+            }
+
+            if (user.verify === UserVerifyStatus.Unverified) {
+              throw new ErrorWithStatus({
+                status: HTTP_STATUS.BAD_REQUEST,
+                message: USER_MESSAGES.USER_NOT_FOUND
+              })
+            }
+
+            return true
+          }
+        }
+      }
+    },
+    ['params']
   )
 )

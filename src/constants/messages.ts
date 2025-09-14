@@ -46,5 +46,14 @@ export const USER_MESSAGES = {
   FORGOT_PASSWORD_TOKEN_VALID: 'Forgot password token is valid',
   RESET_PASSWORD_SUCCESS: 'Reset password successfully',
   USER_FOUND: 'Get current user successfully',
-  USER_UPDATE_SUCCESS: 'Update user successfully'
+  USER_UPDATE_SUCCESS: 'Update user successfully',
+  FOLLOWED_USER_ID_IS_REQUIRED: 'Followed user id is required',
+  FOLLOWED_USER_ID_MUST_BE_A_STRING: 'Followed user id must be a string',
+  FOLLOWED_USER_ID_INVALID: 'Followed user id is invalid',
+  ALREADY_FOLLOWED: 'You have already followed this user',
+  FOLLOW_SUCCESS: 'Follow user successfully',
+  UNFOLLOW_SUCCESS: 'Unfollow user successfully',
+  UNFOLLOW_FAILED: 'Unfollow user failed',
+  NOT_FOLLOWING: 'You are not following this user',
+  ACTION_INVALID: 'Action is invalid'
 } as const

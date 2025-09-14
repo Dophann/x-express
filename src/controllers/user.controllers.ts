@@ -14,6 +14,7 @@ import { USER_MESSAGES } from '~/constants/messages'
 import User from '~/models/users.model'
 import { ObjectId } from 'mongodb'
 import databaseService from '~/services/database.services'
+import HTTP_STATUS from '~/constants/httpStatus'
 
 export const registerController = async (
   req: Request<ParamsDictionary, any, RegisterReqBody>,
@@ -103,5 +104,37 @@ export const updateMeController = async (req: Request<ParamsDictionary, any, Upd
   return res.json({
     message: USER_MESSAGES.USER_UPDATE_SUCCESS,
     data
+  })
+}
+
+export const followController = async (
+  req: Request<ParamsDictionary, any, { followed_user_id: string }>,
+  res: Response
+) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+  const { followed_user_id } = req.body
+  const { alreadyFollowed } = await userServices.follow(user_id, followed_user_id)
+
+  return res.json({
+    message: alreadyFollowed ? USER_MESSAGES.ALREADY_FOLLOWED : USER_MESSAGES.FOLLOW_SUCCESS
+  })
+}
+
+export const unFollowController = async (
+  req: Request<ParamsDictionary, any, { followed_user_id: string }>,
+  res: Response
+) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+  const { followed_user_id } = req.params
+  const { unfollowed } = await userServices.unFollow(user_id, followed_user_id)
+
+  if (unfollowed === false) {
+    return res.status(HTTP_STATUS.BAD_REQUEST).json({
+      message: USER_MESSAGES.UNFOLLOW_FAILED
+    })
+  }
+
+  return res.status(HTTP_STATUS.OK).json({
+    message: USER_MESSAGES.FOLLOW_SUCCESS
   })
 }

@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import {
+  followController,
   forgotPasswordController,
   getMeController,
   loginController,
@@ -7,6 +8,7 @@ import {
   registerController,
   resendVerifyEmailController,
   resetPasswordController,
+  unFollowController,
   updateMeController,
   verifyEmailController,
   verifyForgotPasswordController
@@ -15,12 +17,14 @@ import { FilterBodyMiddleware } from '~/middlewares/global.middlewares'
 import {
   accessTokenValidator,
   emailVerifyTokenValidator,
+  followValidator,
   forgotPasswordValidator,
   loginValidators,
   refreshTokenValidator,
   registerValidators,
   resendVerifyEmailTokenValidator,
   resetPasswordValidator,
+  unFollowValidator,
   UpdateMeValidator,
   userVerifiedValidator,
   verifyForgotPasswordValidator
@@ -64,6 +68,16 @@ userRouter.patch(
   ]),
   UpdateMeValidator,
   wrapAsync(updateMeController)
+)
+
+userRouter.post('/follow', accessTokenValidator, userVerifiedValidator, followValidator, wrapAsync(followController))
+
+userRouter.delete(
+  '/follow/:followed_user_id',
+  accessTokenValidator,
+  userVerifiedValidator,
+  unFollowValidator,
+  wrapAsync(unFollowController)
 )
 
 export default userRouter
