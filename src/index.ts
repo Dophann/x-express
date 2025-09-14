@@ -15,7 +15,11 @@ databaseService.connect().catch(console.log)
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(helmet())
-app.use(cors())
+app.use(
+  cors({
+    origin: 'http://localhost:5173'
+  })
+)
 
 // const limiter = rateLimit({
 //   windowMs: 15 * 60 * 1000, // 15 minutes
