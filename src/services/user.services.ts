@@ -14,6 +14,7 @@ import {
   VerifyEmailBody
 } from '~/types/user.type'
 import envConfig from '~/constants/env'
+import Follower from '~/models/followers.model'
 
 class UserServices {
   private async signAccessToken({ user_id, verify }: { user_id: string; verify?: UserVerifyStatus }) {
@@ -253,6 +254,39 @@ class UserServices {
         }
       }
     )
+  }
+
+  async follow(user_id: string, followed_user_id: string) {
+    const follower = await databaseService.followers.findOne({
+      user_id: new ObjectId(user_id),
+      followed_user_id: new ObjectId(followed_user_id)
+    })
+
+    if (follower) {
+      return { alreadyFollowed: true }
+    }
+
+    await databaseService.followers.insertOne(
+      new Follower({
+        user_id: new ObjectId(user_id),
+        followed_user_id: new ObjectId(followed_user_id)
+      })
+    )
+
+    return { alreadyFollowed: false }
+  }
+
+  async unFollow(user_id: string, followed_user_id: string) {
+    const follower = await databaseService.followers.deleteOne({
+      user_id: new ObjectId(user_id),
+      followed_user_id: new ObjectId(followed_user_id)
+    })
+
+    if (follower.deletedCount === 0) {
+      return { unfollowed: false }
+    }
+
+    return { unfollowed: true }
   }
 }
 

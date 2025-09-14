@@ -1,5 +1,6 @@
 import { Collection, Db, MongoClient, MongoServerError } from 'mongodb'
 import envConfig from '~/constants/env'
+import Follower from '~/models/followers.model'
 import RefreshToken from '~/models/refresh_tokens.model'
 import User from '~/models/users.model'
 
@@ -29,6 +30,9 @@ class DatabaseService {
   }
   get refreshTokens(): Collection<RefreshToken> {
     return this.db.collection('refresh_tokens')
+  }
+  get followers(): Collection<Follower> {
+    return this.db.collection('followers')
   }
 }
 
