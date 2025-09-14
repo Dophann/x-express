@@ -1,4 +1,4 @@
-const MESSAGES = {
+export const USER_MESSAGES = {
   NAME_IS_REQUIRED: 'Name is required',
   NAME_MUST_BE_A_STRING: 'Name must be a string',
   NAME_MUST_BE_FROM_1_TO_100_CHARACTERS: 'Name must be from 1 to 100 characters',
@@ -14,17 +14,37 @@ const MESSAGES = {
   CONFIRM_PASSWORD_IS_REQUIRED: 'Confirm password is required',
   CONFIRM_PASSWORD_MUST_BE_A_STRING: 'Confirm password must be a string',
   CONFIRM_PASSWORD_IS_NOT_CORRECT: 'Confirm password is not correct',
-  DATE_OF_BIRTH_MUST_BE_ISO8601: 'Date of birth must be ISO8601'
-} as const
-
-export const USER_MESSAGES = {
+  DATE_OF_BIRTH_MUST_BE_ISO8601: 'Date of birth must be ISO8601',
+  BIO_MUST_BE_A_STRING: 'Bio must be a string',
+  BIO_MUST_BE_AT_LEAST_1_AND_MAX_300_CHARACTERS: 'Bio must be at least 1 and at most 300 characters',
+  WEBSITE_MUST_BE_A_STRING: 'Website must be a string',
+  WEBSITE_MUST_BE_A_VALID_URL: 'Website must be a valid URL',
+  USERNAME_MUST_BE_A_STRING: 'Username must be a string',
+  USERNAME_MUST_BE_AT_LEAST_1_AND_MAX_50_CHARACTERS: 'Username must be at least 1 and at most 50 characters',
+  AVATAR_MUST_BE_A_STRING: 'Avatar must be a string',
+  AVATAR_MUST_BE_A_VALID_URL: 'Avatar must be a valid URL',
+  COVER_PHOTO_MUST_BE_A_STRING: 'Cover photo must be a string',
+  COVER_PHOTO_MUST_BE_A_VALID_URL: 'Cover photo must be a valid URL',
+  LOCATION_MUST_BE_A_STRING: 'Location must be a string',
+  LOCATION_MUST_BE_AT_LEAST_1_AND_MAX_50_CHARACTERS: 'Location must be at least 1 and max 50 characters',
   REGISTER_SUCCESS: 'Register successfully',
   LOGIN_SUCCESS: 'Login successfully',
   EMAIL_OR_PASSWORD_IS_INCORRECT: 'Email or password is incorrect',
   ACCESS_TOKEN_IS_REQUIRED: 'Access token is required',
   REFRESH_TOKEN_IS_REQUIRED: 'Refresh token is required',
   REFRESH_TOKEN_NOT_EXIST_OR_NOT_VALID: 'Refresh token not exist or not valid',
-  LOGOUT_SUCCESS: 'Logout successfully'
+  LOGOUT_SUCCESS: 'Logout successfully',
+  USER_NOT_FOUND_OR_VERIFIED: 'User not found or verified',
+  USER_NOT_FOUND: 'User not found',
+  USER_IS_VERIFIRED: 'User is verified',
+  USER_IS_NOT_VERIFIRED: 'User is not verified',
+  USER_NOT_FOUND_OR_INVALID_TOKEN: 'User not found or invalid token',
+  VERIFY_EMAIL_SUCCESS: 'Verify email successfully',
+  RESEND_VERIFY_EMAIL_SUCCESS: 'Resend verify email successfully',
+  FORGOT_PASSWORD_REQUEST:
+    'If the email you entered exists in our system, you will receive a password reset link shortly.',
+  FORGOT_PASSWORD_TOKEN_VALID: 'Forgot password token is valid',
+  RESET_PASSWORD_SUCCESS: 'Reset password successfully',
+  USER_FOUND: 'Get current user successfully',
+  USER_UPDATE_SUCCESS: 'Update user successfully'
 } as const
-
-export default MESSAGES
