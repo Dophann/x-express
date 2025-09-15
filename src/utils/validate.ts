@@ -22,7 +22,7 @@ const validate = (validation: RunnableValidationChains<ValidationChain>) => {
       }
       errorEntity.errors[key] = msg
     }
-  
+
     next(errorEntity)
   }
 }

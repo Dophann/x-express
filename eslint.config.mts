@@ -1,7 +1,7 @@
 import pluginJs from '@eslint/js'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
-import { defineConfig } from 'eslint/config'
+import { defineConfig, globalIgnores } from 'eslint/config'
 import eslintPluginPrettier from 'eslint-plugin-prettier'
 
 export default defineConfig([
@@ -30,7 +30,7 @@ export default defineConfig([
           jsxSingleQuote: true
         }
       ]
-    },
-    ignores: ['**/node_modules/', '**/dist/']
-  }
+    }
+  },
+  globalIgnores(['node_modules/', 'dist/'])
 ])

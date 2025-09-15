@@ -138,3 +138,11 @@ export const unFollowController = async (
     message: USER_MESSAGES.FOLLOW_SUCCESS
   })
 }
+
+export const profileController = async (req: Request, res: Response) => {
+  const data = req.user as User
+  return res.json({
+    message: USER_MESSAGES.USER_FOUND,
+    data
+  })
+}

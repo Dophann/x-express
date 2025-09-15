@@ -6,15 +6,10 @@ import type { StringValue } from 'ms'
 import { hashPassword } from '~/utils/crypto'
 import { ObjectId } from 'mongodb'
 import RefreshToken from '~/models/refresh_tokens.model'
-import {
-  LoginReqBody,
-  RegisterReqBody,
-  ResetPasswordReqBody,
-  UpdateMeReqBody,
-  VerifyEmailBody
-} from '~/types/user.type'
+import { RegisterReqBody, ResetPasswordReqBody, UpdateMeReqBody, VerifyEmailBody } from '~/types/user.type'
 import envConfig from '~/constants/env'
 import Follower from '~/models/followers.model'
+import { userProjection } from '~/utils/projection'
 
 class UserServices {
   private async signAccessToken({ user_id, verify }: { user_id: string; verify?: UserVerifyStatus }) {
@@ -69,8 +64,7 @@ class UserServices {
     await databaseService.refreshTokens.insertOne(
       new RefreshToken({
         token: refresh_token,
-        user_id: new ObjectId(user_id),
-        created_at: new Date()
+        user_id: new ObjectId(user_id)
       })
     )
     return {
@@ -92,6 +86,7 @@ class UserServices {
         ...payload,
         _id: user_id,
         email_verify_token,
+        username: `@${user_id}`,
         password: hashPassword(payload.password),
         date_of_birth: new Date(payload.date_of_birth)
       })
@@ -105,8 +100,7 @@ class UserServices {
     await databaseService.refreshTokens.insertOne(
       new RefreshToken({
         token: refresh_token,
-        user_id: user_id,
-        created_at: new Date()
+        user_id: user_id
       })
     )
 
@@ -217,14 +211,7 @@ class UserServices {
         _id: new ObjectId(user_id)
       },
       {
-        projection: {
-          password: 0,
-          forgot_password_token: 0,
-          email_verify_token: 0,
-          verify: 0,
-          created_at: 0,
-          updated_at: 0
-        }
+        projection: userProjection
       }
     )
   }
@@ -244,14 +231,7 @@ class UserServices {
       },
       {
         returnDocument: 'after',
-        projection: {
-          password: 0,
-          forgot_password_token: 0,
-          email_verify_token: 0,
-          verify: 0,
-          created_at: 0,
-          updated_at: 0
-        }
+        projection: userProjection
       }
     )
   }

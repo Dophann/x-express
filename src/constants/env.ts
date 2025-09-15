@@ -11,6 +11,7 @@ dotenv.config({
 const EnvSchema = z.object({
   PORT: z.string().min(1, 'PORT is required'),
   DB_NAME: z.string().min(1, 'DB_NAME is required'),
+  DOMAIN_CLIENT: z.string().min(1, 'DOMAIN_CLIENT is required'),
   ACCESS_TOKEN_SECRET: z.string().min(1, 'ACCESS_TOKEN_SECRET is required'),
   ACCESS_TOKEN_EXPIRES_IN: z.string().min(1, 'ACCESS_TOKEN_EXPIRES_IN is required'),
   REFRESH_TOKEN_SECRET: z.string().min(1, 'REFRESH_TOKEN_SECRET is required'),

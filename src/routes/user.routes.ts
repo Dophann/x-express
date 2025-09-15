@@ -5,6 +5,7 @@ import {
   getMeController,
   loginController,
   logoutController,
+  profileController,
   registerController,
   resendVerifyEmailController,
   resetPasswordController,
@@ -20,6 +21,7 @@ import {
   followValidator,
   forgotPasswordValidator,
   loginValidators,
+  profileValidator,
   refreshTokenValidator,
   registerValidators,
   resendVerifyEmailTokenValidator,
@@ -79,5 +81,7 @@ userRouter.delete(
   unFollowValidator,
   wrapAsync(unFollowController)
 )
+
+userRouter.get('/profile/:username', profileValidator, wrapAsync(profileController))
 
 export default userRouter

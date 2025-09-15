@@ -14,6 +14,8 @@ import { ErrorWithStatus } from '~/utils/error'
 import { verifyToken } from '~/utils/jwt'
 import validate from '~/utils/validate'
 import { NextFunction, Request, Response } from 'express'
+import { usernameFormatRegex } from '~/utils/regex'
+import { userProjection } from '~/utils/projection'
 
 const password: ParamSchema = {
   trim: true,
@@ -61,13 +63,13 @@ const confirm_password: ParamSchema = {
 }
 
 const name: ParamSchema = {
+  trim: true,
   notEmpty: {
     errorMessage: USER_MESSAGES.NAME_IS_REQUIRED
   },
   isString: {
     errorMessage: USER_MESSAGES.NAME_MUST_BE_A_STRING
   },
-  trim: true,
   isLength: {
     options: {
       min: 1,
@@ -77,14 +79,45 @@ const name: ParamSchema = {
   }
 }
 
+const username: ParamSchema = {
+  trim: true,
+  isString: {
+    errorMessage: USER_MESSAGES.USERNAME_MUST_BE_A_STRING
+  },
+  isLength: {
+    options: { min: 2, max: 25 },
+    errorMessage: USER_MESSAGES.USERNAME_MUST_BE_AT_LEAST_2_AND_MAX_15_CHARACTERS
+  },
+  matches: {
+    options: usernameFormatRegex,
+    errorMessage: USER_MESSAGES.USER_INVALID_FORMAT
+  },
+  custom: {
+    options: async (username: string, { req }) => {
+      if (req.route.path === '/register') return undefined
+      const { user_id } = req.decoded_authorization as TokenPayload
+      const usernameIsExisted = await databaseService.users.findOne({ username }, { projection: userProjection })
+
+      if (usernameIsExisted && usernameIsExisted._id.toString() !== user_id) {
+        throw new ErrorWithStatus({
+          message: USER_MESSAGES.USERNAME_EXISTED,
+          status: HTTP_STATUS.BAD_REQUEST
+        })
+      }
+
+      return true
+    }
+  }
+}
+
 const email: ParamSchema = {
+  trim: true,
   notEmpty: {
     errorMessage: USER_MESSAGES.EMAIL_IS_REQUIRED
   },
   isEmail: {
     errorMessage: USER_MESSAGES.EMAIL_MUST_BE_AN_EMAIL
   },
-  trim: true,
   custom: {
     options: async (value) => {
       const emailExist = await userServices.checkEmailExist(value)
@@ -112,6 +145,7 @@ export const registerValidators = validate(
   checkSchema(
     {
       name,
+      username,
       email,
       password,
       confirm_password,
@@ -134,16 +168,23 @@ export const loginValidators = validate(
         },
         custom: {
           options: async (value, { req }) => {
-            const user = await databaseService.users.findOne({
-              email: value,
-              password: hashPassword(req.body.password)
-            })
+            const user = await databaseService.users.findOne(
+              {
+                email: value,
+                password: hashPassword(req.body.password)
+              },
+              {
+                projection: userProjection
+              }
+            )
+
             if (!user) {
               throw new ErrorWithStatus({
                 message: USER_MESSAGES.EMAIL_OR_PASSWORD_IS_INCORRECT,
                 status: HTTP_STATUS.UNAUTHORIZED
               })
             }
+
             req.user = user
             return true
           }
@@ -251,7 +292,12 @@ export const emailVerifyTokenValidator = validate(
                 })
               }
 
-              const user = await databaseService.users.findOne({ _id: new ObjectId(user_id), verify })
+              const user = await databaseService.users.findOne(
+                { _id: new ObjectId(user_id), verify },
+                {
+                  projection: userProjection
+                }
+              )
 
               if (!user) {
                 throw new ErrorWithStatus({
@@ -295,10 +341,13 @@ export const resendVerifyEmailTokenValidator = validate(
               })
             }
 
-            const user = await databaseService.users.findOne({
-              _id: new ObjectId(user_id),
-              verify: UserVerifyStatus.Unverified
-            })
+            const user = await databaseService.users.findOne(
+              {
+                _id: new ObjectId(user_id),
+                verify: UserVerifyStatus.Unverified
+              },
+              { projection: userProjection }
+            )
 
             if (!user) {
               throw new ErrorWithStatus({
@@ -324,9 +373,12 @@ export const forgotPasswordValidator = validate(
         isEmail: true,
         custom: {
           options: async (email: string, { req }) => {
-            const user = await databaseService.users.findOne({
-              email
-            })
+            const user = await databaseService.users.findOne(
+              {
+                email
+              },
+              { projection: userProjection }
+            )
 
             if (!user) {
               throw new ErrorWithStatus({
@@ -360,10 +412,13 @@ export const verifyForgotPasswordValidator = validate(
               })
               const { user_id } = forgot_password_token_decoded
 
-              const user = await databaseService.users.findOne({
-                _id: new ObjectId(user_id),
-                forgot_password_token: token
-              })
+              const user = await databaseService.users.findOne(
+                {
+                  _id: new ObjectId(user_id),
+                  forgot_password_token: token
+                },
+                { projection: userProjection }
+              )
 
               if (!user) {
                 throw new ErrorWithStatus({
@@ -406,10 +461,13 @@ export const resetPasswordValidator = validate(
 
               const { user_id } = forgot_password_token_decoded
 
-              const user = await databaseService.users.findOne({
-                _id: new ObjectId(user_id),
-                forgot_password_token: token
-              })
+              const user = await databaseService.users.findOne(
+                {
+                  _id: new ObjectId(user_id),
+                  forgot_password_token: token
+                },
+                { projection: userProjection }
+              )
 
               if (!user) {
                 throw new ErrorWithStatus({
@@ -505,17 +563,7 @@ export const UpdateMeValidator = validate(
           errorMessage: USER_MESSAGES.WEBSITE_MUST_BE_A_VALID_URL
         }
       },
-      username: {
-        optional: true,
-        isString: {
-          errorMessage: USER_MESSAGES.USERNAME_MUST_BE_A_STRING
-        },
-        trim: true,
-        isLength: {
-          options: { min: 1, max: 50 },
-          errorMessage: USER_MESSAGES.USERNAME_MUST_BE_AT_LEAST_1_AND_MAX_50_CHARACTERS
-        }
-      },
+      username,
       avatar: {
         optional: true,
         isString: {
@@ -578,7 +626,10 @@ export const followValidator = validate(
               })
             }
 
-            const user = await databaseService.users.findOne({ _id: new ObjectId(id) })
+            const user = await databaseService.users.findOne(
+              { _id: new ObjectId(id) },
+              { projection: { ...userProjection, verify: 1 } }
+            )
 
             if (!user) {
               throw new ErrorWithStatus({
@@ -632,7 +683,15 @@ export const unFollowValidator = validate(
               })
             }
 
-            const user = await databaseService.users.findOne({ _id: new ObjectId(id) })
+            const user = await databaseService.users.findOne(
+              { _id: new ObjectId(id) },
+              {
+                projection: {
+                  ...userProjection,
+                  verify: 1
+                }
+              }
+            )
 
             if (!user) {
               throw new ErrorWithStatus({
@@ -648,6 +707,43 @@ export const unFollowValidator = validate(
               })
             }
 
+            return true
+          }
+        }
+      }
+    },
+    ['params']
+  )
+)
+
+export const profileValidator = validate(
+  checkSchema(
+    {
+      username: {
+        trim: true,
+        notEmpty: {
+          errorMessage: USER_MESSAGES.USERNAME_IS_REQUIRED
+        },
+        custom: {
+          options: async (username, { req }) => {
+            const user = await databaseService.users.findOne(
+              {
+                username,
+                verify: UserVerifyStatus.Verified
+              },
+              {
+                projection: userProjection
+              }
+            )
+
+            if (!user) {
+              throw new ErrorWithStatus({
+                message: USER_MESSAGES.USER_NOT_FOUND,
+                status: HTTP_STATUS.BAD_REQUEST
+              })
+            }
+
+            req.user = user
             return true
           }
         }
